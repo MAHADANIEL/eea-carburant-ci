@@ -1,0 +1,19 @@
+# Dépendances (générées par npm install)
+node_modules/
+
+# Base de données locale (SQLite)
+*.db
+*.db-wal
+*.db-shm
+
+# Variables d'environnement (secrets, clés API)
+.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dossiers système
+.DS_Store
+Thumbs.db

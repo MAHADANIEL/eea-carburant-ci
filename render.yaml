@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: eea-carburant-ci
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /var/data/eea_carburant.db
+    disk:
+      name: eea-data
+      mountPath: /var/data
+      sizeGB: 1

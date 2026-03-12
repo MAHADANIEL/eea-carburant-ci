@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EEA-CARBURANT-CI | Système de Gestion</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <!-- SCAN LINES OVERLAY -->
+
+  <div class="scanlines"></div>
+  <div class="noise-overlay"></div>
+
+  <!-- ══════════ LOGIN PAGE ══════════ -->
+
+  <div id="loginPage" class="page active">
+    <div class="login-bg">
+      <div class="login-grid"></div>
+      <div class="login-particles" id="particles"></div>
+    </div>
+    <div class="login-container">
+      <div class="login-logo-area">
+        <div class="logo-ring"></div>
+        <div class="logo-ring ring2"></div>
+        <div class="logo-icon"><i class="fas fa-gas-pump"></i></div>
+      </div>
+      <div class="login-flag">
+        <span class="ci-flag">🇨🇮</span>
+      </div>
+      <h1 class="login-company">EEA-CARBURANT-CI</h1>
+      <p class="login-subtitle">SYSTÈME DE GESTION DES CITERNES</p>
+      <div class="login-divider"><span>ACCÈS SÉCURISÉ</span></div>
+      <div class="login-form">
+        <label class="input-label">CODE D'ACCÈS</label>
+        <div class="pin-inputs" id="pinInputs">
+          <input type="password" maxlength="1" class="pin-box" data-index="0" inputmode="numeric" />
+          <input type="password" maxlength="1" class="pin-box" data-index="1" inputmode="numeric" />
+          <input type="password" maxlength="1" class="pin-box" data-index="2" inputmode="numeric" />
+          <input type="password" maxlength="1" class="pin-box" data-index="3" inputmode="numeric" />
+          <input type="password" maxlength="1" class="pin-box" data-index="4" inputmode="numeric" />
+          <input type="password" maxlength="1" class="pin-box" data-index="5" inputmode="numeric" />
+        </div>
+        <div id="loginError" class="login-error"></div>
+        <button class="btn-login" id="btnLogin" onclick="handleLogin()">
+          <span class="btn-text">ACCÉDER AU SYSTÈME</span>
+          <i class="fas fa-arrow-right btn-icon"></i>
+        </button>
+      </div>
+      <div class="login-footer">
+        <span class="status-dot"></span>
+        <span>SYSTÈME OPÉRATIONNEL — ESP8266 CONNECTÉ</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MAIN APP ══════════ -->
+
+  <div id="mainApp" class="page">
+
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <i class="fas fa-gas-pump"></i>
+    </div>
+    <div class="sidebar-brand">
+      <span class="brand-name">EEA-CARBURANT</span>
+      <span class="brand-country">🇨🇮 CÔTE D'IVOIRE</span>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+  <div class="sidebar-status">
+    <div class="status-indicator online">
+      <span class="pulse-dot"></span>
+      <span>ESP8266 EN LIGNE</span>
+    </div>
+  </div>
+  <ul class="nav-menu">
+    <li class="nav-item active" onclick="showPage('dashboard')">
+      <i class="fas fa-tachometer-alt"></i>
+      <span>TABLEAU DE BORD</span>
+    </li>
+    <li class="nav-item" onclick="showPage('distribution')">
+      <i class="fas fa-oil-can"></i>
+      <span>DISTRIBUTION</span>
+    </li>
+    <li class="nav-item" onclick="showPage('historique')">
+      <i class="fas fa-history"></i>
+      <span>HISTORIQUE</span>
+    </li>
+    <li class="nav-item" onclick="showPage('recu')">
+      <i class="fas fa-file-invoice"></i>
+      <span>REÇUS</span>
+    </li>
+  </ul>
+  <div class="sidebar-footer">
+    <button class="btn-logout" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>DÉCONNEXION</span>
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main-content" id="mainContent">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="pageTitle">TABLEAU DE BORD</div>
+      <div class="breadcrumb" id="breadcrumb">Accueil / Dashboard</div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-time" id="topbarTime"></div>
+      <div class="topbar-loc"><i class="fas fa-map-marker-alt"></i> <span id="topbarLoc">Localisation...</span></div>
+      <div class="topbar-signal"><i class="fas fa-wifi"></i> <span class="signal-val">-52 dBm</span></div>
+    </div>
+  </header>
+
+  <!-- ─── DASHBOARD PAGE ─── -->
+  <div class="content-page active" id="page-dashboard">
+    <div class="dashboard-grid">
+
+      <!-- Gauge Card -->
+      <div class="card gauge-card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-water"></i> NIVEAU CITERNE</span>
+          <span class="card-badge live">LIVE</span>
+        </div>
+        <div class="gauge-wrapper">
+          <canvas id="fuelGauge" width="280" height="280"></canvas>
+          <div class="gauge-center-text">
+            <div class="gauge-percent" id="gaugePercent">78%</div>
+            <div class="gauge-label">NIVEAU</div>
+          </div>
+        </div>
+        <div class="gauge-stats">
+          <div class="gstat"><span class="gstat-label">RESTANT</span><span class="gstat-val" id="litresRestants">7 800 L</span></div>
+          <div class="gstat-divider"></div>
+          <div class="gstat"><span class="gstat-label">INITIAL</span><span class="gstat-val" id="litresInitial">10 000 L</span></div>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-col">
+        <div class="card stat-card">
+          <div class="stat-icon distributed"><i class="fas fa-truck"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statDistribue">2 200 L</div>
+            <div class="stat-label">LITRES DISTRIBUÉS</div>
+            <div class="stat-sub">Depuis le début</div>
+          </div>
+          <div class="stat-trend up"><i class="fas fa-arrow-trend-up"></i> +340 L aujourd'hui</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-icon pump-stat"><i class="fas fa-pump-soap"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statPompe">ACTIVE</div>
+            <div class="stat-label">ÉTAT POMPE</div>
+            <div class="stat-sub">Module relais CIT-046</div>
+          </div>
+          <div class="stat-trend pump-ok"><i class="fas fa-circle-check"></i> Opérationnelle</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-icon temp-stat"><i class="fas fa-thermometer-half"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statTemp">28.4°C</div>
+            <div class="stat-label">TEMPÉRATURE</div>
+            <div class="stat-sub">Capteur ultrasonique</div>
+          </div>
+          <div class="stat-trend normal"><i class="fas fa-minus"></i> Normale</div>
+        </div>
+      </div>
+
+      <!-- Level Bar -->
+      <div class="card level-card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-chart-bar"></i> NIVEAUX EN TEMPS RÉEL</span>
+        </div>
+        <div class="level-bars">
+          <div class="level-bar-item">
+            <span class="lb-label">CARBURANT</span>
+            <div class="lb-track">
+              <div class="lb-fill fuel" id="lbFuel" style="width:78%">
+                <span class="lb-pct">78%</span>
+              </div>
+            </div>
+          </div>
+          <div class="level-bar-item">
+            <span class="lb-label">DISTRIBUÉ</span>
+            <div class="lb-track">
+              <div class="lb-fill dist" id="lbDist" style="width:22%">
+                <span class="lb-pct">22%</span>
+              </div>
+            </div>
+          </div>
+          <div class="level-bar-item">
+            <span class="lb-label">ALERTE MIN</span>
+            <div class="lb-track">
+              <div class="lb-fill alert-bar" style="width:15%">
+                <span class="lb-pct">15%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sensor-data">
+          <div class="sensor-row">
+            <span>Distance capteur US</span>
+            <span class="sensor-val" id="sensorDist">45.2 cm</span>
+          </div>
+          <div class="sensor-row">
+            <span>Tension LM2596</span>
+            <span class="sensor-val">12.0 V</span>
+          </div>
+          <div class="sensor-row">
+            <span>Signal WiFi</span>
+            <span class="sensor-val">-52 dBm</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini Chart -->
+      <div class="card chart-card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-chart-line"></i> CONSOMMATION (7 jours)</span>
+        </div>
+        <canvas id="consumChart" width="400" height="180"></canvas>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── DISTRIBUTION PAGE ─── -->
+  <div class="content-page" id="page-distribution">
+    <div class="distrib-layout">
+      <div class="card distrib-form-card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-oil-can"></i> COMMANDE DE DISTRIBUTION</span>
+        </div>
+        <div class="distrib-form">
+          <div class="form-group">
+            <label>NOM DE LA SOCIÉTÉ</label>
+            <input type="text" id="distribSociete" class="form-input" placeholder="Ex: TOTAL CI, SHELL..." />
+          </div>
+          <div class="form-group">
+            <label>RESPONSABLE</label>
+            <input type="text" id="distribResponsable" class="form-input" placeholder="Nom du responsable" />
+          </div>
+          <div class="form-group">
+            <label>VOLUME DEMANDÉ (Litres)</label>
+            <div class="volume-input-wrap">
+              <input type="number" id="distribVolume" class="form-input volume-input" placeholder="0" min="1" max="9999" />
+              <span class="unit-badge">L</span>
+            </div>
+            <div class="volume-hint">
+              <span>Disponible: <strong id="hintDisponible">7 800 L</strong></span>
+              <span>1L ≈ <strong>1000 mL</strong></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>BON DE COMMANDE N°</label>
+            <input type="text" id="distribBon" class="form-input" placeholder="BC-2025-XXXX" />
+          </div>
+          <div class="pump-control-area">
+            <div class="pump-status-card" id="pumpStatusCard">
+              <div class="pump-icon-wrap"><i class="fas fa-pump-soap" id="pumpIconAnim"></i></div>
+              <div class="pump-info">
+                <span class="pump-label">POMPE SUBMERSIBLE 12V</span>
+                <span class="pump-state" id="pumpState">EN ATTENTE</span>
+              </div>
+            </div>
+            <div class="progress-track" id="distribProgress" style="display:none">
+              <div class="progress-fill" id="distribProgressFill"></div>
+              <span class="progress-text" id="distribProgressText">0%</span>
+            </div>
+            <button class="btn-pump" id="btnPump" onclick="startDistribution()">
+              <i class="fas fa-play-circle"></i>
+              <span>LANCER LA DISTRIBUTION</span>
+            </button>
+            <button class="btn-stop" id="btnStop" onclick="stopDistribution()" style="display:none">
+              <i class="fas fa-stop-circle"></i>
+              <span>ARRÊTER</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="distrib-right">
+        <div class="card distrib-preview-card">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-eye"></i> APERÇU DISTRIBUTION</span>
+          </div>
+          <div class="preview-stats">
+            <div class="pstat"><span>VOLUME COMMANDÉ</span><strong id="prevVol">— L</strong></div>
+            <div class="pstat"><span>NIVEAU ACTUEL</span><strong>7 800 L (78%)</strong></div>
+            <div class="pstat"><span>APRÈS DISTRIBUTION</span><strong id="prevAfter">— L</strong></div>
+            <div class="pstat"><span>DURÉE EST.</span><strong id="prevDuree">—</strong></div>
+          </div>
+          <div id="alertLow" class="alert-low" style="display:none">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>ATTENTION: Niveau bas après distribution</span>
+          </div>
+        </div>
+
+        <div class="card quick-card">
+          <div class="card-header"><span class="card-title"><i class="fas fa-bolt"></i> DISTRIBUÉS AUJOURD'HUI</span></div>
+          <div class="today-distrib" id="todayList">
+            <div class="td-item"><span class="td-time">08:30</span><span class="td-company">TOTAL CI</span><span class="td-vol">500 L</span></div>
+            <div class="td-item"><span class="td-time">10:15</span><span class="td-company">SHELL</span><span class="td-vol">340 L</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── HISTORIQUE PAGE ─── -->
+  <div class="content-page" id="page-historique">
+    <div class="card hist-card">
+      <div class="card-header">
+        <span class="card-title"><i class="fas fa-history"></i> HISTORIQUE DES DISTRIBUTIONS</span>
+        <div class="hist-actions">
+          <input type="date" id="histFilter" class="hist-date-input" onchange="filterHistory()" />
+          <button class="btn-export" onclick="exportCSV()"><i class="fas fa-download"></i> EXPORTER</button>
+        </div>
+      </div>
+      <div class="hist-table-wrap">
+        <table class="hist-table">
+          <thead>
+            <tr>
+              <th>N° OP.</th>
+              <th>DATE & HEURE</th>
+              <th>SOCIÉTÉ</th>
+              <th>RESPONSABLE</th>
+              <th>VOLUME</th>
+              <th>BON</th>
+              <th>POSITION GPS</th>
+              <th>STATUT</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody id="histTableBody"></tbody>
+        </table>
+      </div>
+      <div class="hist-pagination">
+        <span id="histCount">0 enregistrements</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── REÇUS PAGE ─── -->
+  <div class="content-page" id="page-recu">
+    <div class="recu-layout">
+      <div class="card recu-list-card">
+        <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> DISTRIBUTIONS RÉCENTES</span></div>
+        <div id="recuList" class="recu-list"></div>
+      </div>
+      <div class="card recu-preview-card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-file-invoice"></i> APERÇU REÇU</span>
+          <div class="recu-actions">
+            <button class="btn-print" onclick="printRecu()"><i class="fas fa-print"></i> IMPRIMER</button>
+            <button class="btn-pdf" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+        <div id="recuPreview" class="recu-preview-area">
+          <div class="recu-placeholder"><i class="fas fa-file-invoice"></i><span>Sélectionnez une distribution</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+
+  </div>
+
+  <!-- RECEIPT TEMPLATE (hidden, for PDF) -->
+
+  <div id="receiptTemplate" style="display:none">
+    <!-- injected by JS -->
+  </div>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
